@@ -36,7 +36,7 @@ module System.ByteOrder
     -- * Classes
   , Bytes
   , FixedOrdering
-    -- * Convert
+    -- * Conversion
   , toBigEndian
   , toLittleEndian
   , fromBigEndian
@@ -67,7 +67,7 @@ fromLittleEndian = toLittleEndian
 
 -- | A word whose byte order is specified (not platform dependent)
 -- when working with 'Prim', 'Storable', and @PrimUnaligned@ (this
--- last instance is provided alongside the typeclass in the
+-- last instance is provided alongside the typeclass itself in the
 -- @primitive-unaligned@ library).
 newtype Fixed :: ByteOrder -> Type -> Type where
   Fixed :: forall (b :: ByteOrder) (a :: Type). { getFixed :: a } -> Fixed b a
@@ -126,7 +126,7 @@ sockets for communication. The protocol interprets all numbers as
 unsigned. It is described as follows:
 
 1. The client sends the server a little-endian 16-bit number @N@.
-   This is the amount of numbers that will follow.
+   This is how many numbers will follow.
 2. The client sends @N@ little-endian 64-bit numbers to the server.
 3. The server responds with two little-endian 64-bit numbers:
    the sum and the product of the @N@ numbers it received.
@@ -147,6 +147,10 @@ Additionally, assume the @typed@ and @untyped@ functions that convert between
 For simplicity, all error-handling is omitted. With the type-directed
 interface, the server is implemented as:
 
+> import Data.Primitive.ByteArray
+> import Data.Primitive.PrimArray
+> import System.ByteOrder
+> 
 > server :: Socket -> IO a
 > server sckt = forever $ do
 >   totalByteArray <- receive sckt 2
@@ -162,8 +166,8 @@ interface, the server is implemented as:
 >   writePrimArray reply 1 (Fixed prod)
 >   send sckt . untyped =<< unsafeFreezePrimArray reply
 
-Not all of the explicit type annotations are needed, but they have been
-provided for additional clarity. As long as the user ensures that the
+Not every explicit type annotation above is needed. Some are provided
+for the reader's benefit. As long as the user ensures that the
 typed primitive arrays use 'Fixed' in their element types, the endianness
 conversions are guaranteed to be correct.
 
