@@ -32,8 +32,8 @@ unsigned. It is described as follows:
 1. The client sends the server a little-endian 16-bit number @N@.
    This is the count of numbers that will follow.
 2. The client sends the server @N@ little-endian 64-bit numbers.
-3. The server responds with two 64-bit numbers: the sum and the
-   product.
+3. The server responds with two little-endian 64-bit numbers:
+   the sum and the product.
 
 Assume the existence of a @send@ and @receive@ that block until
 the total number of requested bytes have been handled. Additionally,

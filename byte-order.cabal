@@ -2,6 +2,11 @@ cabal-version: 2.2
 name: byte-order
 version: 0.1.0.0
 synopsis: Portable big-endian and little-endian conversions
+description:
+  This library provides an interface to portably work with byte
+  arrays whose contents are known to be of a fixed endianness.
+  There are two ways to use this module. See the `System.ByteOrder`
+  module for more documentation.
 homepage: https://github.com/andrewthad/byte-order
 bug-reports: https://github.com/andrewthad/byte-order/issues
 license: BSD-3-Clause
