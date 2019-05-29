@@ -87,10 +87,13 @@ module System.ByteOrder
 
 import Data.Kind (Type)
 import Data.Primitive.Types (Prim)
+import Foreign.Ptr (Ptr,castPtr)
+import Foreign.Storable (Storable)
 import GHC.ByteOrder (ByteOrder(..),targetByteOrder)
 import System.ByteOrder.Class (Bytes(..),FixedOrdering,toFixedEndian)
 
 import qualified Data.Primitive.Types as PM
+import qualified Foreign.Storable as FS
 
 -- | Convert from a big-endian word to a native-endian word.
 fromBigEndian :: Bytes a => a -> a
@@ -100,7 +103,24 @@ fromBigEndian = toBigEndian
 fromLittleEndian :: Bytes a => a -> a
 fromLittleEndian = toLittleEndian
 
+-- | A word whose byte order is specified (not platform dependent)
+-- when working with 'Prim' and 'Storable'.
+newtype Fixed :: ByteOrder -> Type -> Type where
+  Fixed :: { getFixed :: a } -> Fixed b a
+
+type role Fixed phantom representational
+
 instance (FixedOrdering b, Prim a, Bytes a) => Prim (Fixed b a) where
+  {-# inline sizeOf# #-}
+  {-# inline alignment# #-}
+  {-# inline indexByteArray# #-}
+  {-# inline readByteArray# #-}
+  {-# inline writeByteArray# #-}
+  {-# inline setByteArray# #-}
+  {-# inline indexOffAddr# #-}
+  {-# inline readOffAddr# #-}
+  {-# inline writeOffAddr# #-}
+  {-# inline setOffAddr# #-}
   sizeOf# _ = PM.sizeOf# (undefined :: a)
   alignment# _ = PM.alignment# (undefined :: a)
   indexByteArray# a i = Fixed (toFixedEndian @b (PM.indexByteArray# a i))
@@ -114,9 +134,24 @@ instance (FixedOrdering b, Prim a, Bytes a) => Prim (Fixed b a) where
   writeOffAddr# a i (Fixed x) = PM.writeOffAddr# a i (toFixedEndian @b x)
   setOffAddr# a i n (Fixed x) = PM.setOffAddr# a i n (toFixedEndian @b x)
 
--- | A word whose byte order is specified (not platform dependent)
--- when working with 'Prim' and 'Storable'.
-newtype Fixed :: ByteOrder -> Type -> Type where
-  Fixed :: { getFixed :: a } -> Fixed b a
+instance (FixedOrdering b, Storable a, Bytes a) => Storable (Fixed b a) where
+  {-# inline sizeOf #-}
+  {-# inline alignment #-}
+  {-# inline peekElemOff #-}
+  {-# inline pokeElemOff #-}
+  {-# inline peekByteOff #-}
+  {-# inline pokeByteOff #-}
+  {-# inline peek #-}
+  {-# inline poke #-}
+  sizeOf _ = FS.sizeOf (undefined :: a)
+  alignment _ = FS.alignment (undefined :: a)
+  peekElemOff p i = fmap (Fixed . toFixedEndian @b) (FS.peekElemOff (fromFixedPtr p) i)
+  pokeElemOff p i (Fixed x) = FS.pokeElemOff (fromFixedPtr p) i (toFixedEndian @b x)
+  peekByteOff p i = fmap (Fixed . toFixedEndian @b) (FS.peekByteOff p i)
+  pokeByteOff p i (Fixed x) = FS.pokeByteOff p i (toFixedEndian @b x)
+  peek p = fmap (Fixed . toFixedEndian @b) (FS.peek (fromFixedPtr p))
+  poke p (Fixed x) = FS.poke (fromFixedPtr p) (toFixedEndian @b x)
 
-type role Fixed phantom representational
+fromFixedPtr :: Ptr (Fixed b a) -> Ptr a
+{-# inline fromFixedPtr #-}
+fromFixedPtr = castPtr
