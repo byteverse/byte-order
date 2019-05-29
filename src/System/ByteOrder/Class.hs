@@ -1,13 +1,23 @@
+{-# language AllowAmbiguousTypes #-}
+{-# language DataKinds #-}
+{-# language GADTSyntax #-}
+{-# language KindSignatures #-}
+{-# language MagicHash #-}
+{-# language RoleAnnotations #-}
+{-# language ScopedTypeVariables #-}
 {-# language TypeApplications #-}
+{-# language UnboxedTuples #-}
 
 module System.ByteOrder.Class
-  ( Bytes(..)
+  ( FixedOrdering(..)
+  , Bytes(..)
   ) where
 
-import GHC.ByteOrder (ByteOrder(..),targetByteOrder)
+import Data.Int (Int8,Int16,Int32,Int64)
 import Data.Word (Word8,Word16,Word32,Word64)
 import Data.Word (byteSwap16,byteSwap32,byteSwap64)
-import Data.Int (Int8,Int16,Int32,Int64)
+import GHC.ByteOrder (ByteOrder(..),targetByteOrder)
+import GHC.ByteOrder (ByteOrder(BigEndian,LittleEndian))
 
 -- | Types that are represented as a fixed-sized word. For these
 -- types, the bytes can be swapped. The instances of this class
@@ -108,3 +118,16 @@ instance Bytes Int64 where
       . byteSwap64
       . fromIntegral @Int64 @Word64
     LittleEndian -> id
+
+-- | A byte order that can be interpreted as a conversion function.
+-- This class is effectively closed. The only instances are for
+-- 'BigEndian' and 'LittleEndian'. It is not possible to write more
+-- instances since there are no other inhabitants of 'ByteOrder'.
+class FixedOrdering (b :: ByteOrder) where
+  toFixedEndian :: Bytes a => a -> a
+
+instance FixedOrdering 'LittleEndian where
+  toFixedEndian = toLittleEndian
+
+instance FixedOrdering 'BigEndian where
+  toFixedEndian = toBigEndian

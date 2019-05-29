@@ -1,8 +1,11 @@
 {-# language DataKinds #-}
-{-# language ExplicitForAll #-}
+{-# language GADTSyntax #-}
 {-# language KindSignatures #-}
+{-# language MagicHash #-}
+{-# language RoleAnnotations #-}
 {-# language ScopedTypeVariables #-}
 {-# language TypeApplications #-}
+{-# language UnboxedTuples #-}
 
 {-| This module offers an interface to portably work with byte
 arrays whose contents are known to be of a fixed endianness.
@@ -82,11 +85,12 @@ module System.ByteOrder
   , fromLittleEndian
   ) where
 
-import Data.Coerce (coerce)
 import Data.Kind (Type)
+import Data.Primitive.Types (Prim)
 import GHC.ByteOrder (ByteOrder(..),targetByteOrder)
-import System.ByteOrder.Class (Bytes(..))
-import System.ByteOrder.Unsafe (Fixed(Fixed),FixedOrdering,toFixedEndian)
+import System.ByteOrder.Class (Bytes(..),FixedOrdering,toFixedEndian)
+
+import qualified Data.Primitive.Types as PM
 
 -- | Convert from a big-endian word to a native-endian word.
 fromBigEndian :: Bytes a => a -> a
@@ -95,3 +99,24 @@ fromBigEndian = toBigEndian
 -- | Convert from a little-endian word to a native-endian word.
 fromLittleEndian :: Bytes a => a -> a
 fromLittleEndian = toLittleEndian
+
+instance (FixedOrdering b, Prim a, Bytes a) => Prim (Fixed b a) where
+  sizeOf# _ = PM.sizeOf# (undefined :: a)
+  alignment# _ = PM.alignment# (undefined :: a)
+  indexByteArray# a i = Fixed (toFixedEndian @b (PM.indexByteArray# a i))
+  readByteArray# a i s0 = case PM.readByteArray# a i s0 of
+    (# s1, x #) -> (# s1, Fixed (toFixedEndian @b x) #)
+  writeByteArray# a i (Fixed x) = PM.writeByteArray# a i (toFixedEndian @b x)
+  setByteArray# a i n (Fixed x) = PM.setByteArray# a i n (toFixedEndian @b x)
+  indexOffAddr# a i = Fixed (toFixedEndian @b (PM.indexOffAddr# a i))
+  readOffAddr# a i s0 = case PM.readOffAddr# a i s0 of
+    (# s1, x #) -> (# s1, Fixed (toFixedEndian @b x) #)
+  writeOffAddr# a i (Fixed x) = PM.writeOffAddr# a i (toFixedEndian @b x)
+  setOffAddr# a i n (Fixed x) = PM.setOffAddr# a i n (toFixedEndian @b x)
+
+-- | A word whose byte order is specified (not platform dependent)
+-- when working with 'Prim' and 'Storable'.
+newtype Fixed :: ByteOrder -> Type -> Type where
+  Fixed :: { getFixed :: a } -> Fixed b a
+
+type role Fixed phantom representational
