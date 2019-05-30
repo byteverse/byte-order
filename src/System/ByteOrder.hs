@@ -1,9 +1,12 @@
 {-# language DataKinds #-}
+{-# language DerivingStrategies #-}
+{-# language GeneralizedNewtypeDeriving #-}
 {-# language GADTSyntax #-}
 {-# language KindSignatures #-}
 {-# language MagicHash #-}
 {-# language RoleAnnotations #-}
 {-# language ScopedTypeVariables #-}
+{-# language StandaloneDeriving #-}
 {-# language TypeApplications #-}
 {-# language UnboxedTuples #-}
 
@@ -73,6 +76,8 @@ newtype Fixed :: ByteOrder -> Type -> Type where
   Fixed :: forall (b :: ByteOrder) (a :: Type). { getFixed :: a } -> Fixed b a
 
 type role Fixed phantom representational
+
+deriving newtype instance Num a => Num (Fixed b a)
 
 instance (FixedOrdering b, Prim a, Bytes a) => Prim (Fixed b a) where
   {-# inline sizeOf# #-}

@@ -1,6 +1,6 @@
 cabal-version: 2.2
 name: byte-order
-version: 0.1.0.0
+version: 0.1.1.0
 synopsis: Portable big-endian and little-endian conversions
 description:
   This library provides an interface to portably work with byte
