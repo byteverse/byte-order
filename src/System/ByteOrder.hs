@@ -78,6 +78,11 @@ newtype Fixed :: ByteOrder -> Type -> Type where
 type role Fixed phantom representational
 
 deriving newtype instance Num a => Num (Fixed b a)
+deriving newtype instance Real a => Real (Fixed b a)
+deriving newtype instance Integral a => Integral (Fixed b a)
+deriving newtype instance Ord a => Ord (Fixed b a)
+deriving newtype instance Enum a => Enum (Fixed b a)
+deriving newtype instance Eq a => Eq (Fixed b a)
 
 instance (FixedOrdering b, Prim a, Bytes a) => Prim (Fixed b a) where
   {-# inline sizeOf# #-}
