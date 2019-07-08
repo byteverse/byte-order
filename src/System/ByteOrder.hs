@@ -51,6 +51,7 @@ module System.ByteOrder
   ) where
 
 import Data.Kind (Type)
+import Data.Primitive.ByteArray.Unaligned (PrimUnaligned)
 import Data.Primitive.Types (Prim)
 import Foreign.Ptr (Ptr,castPtr)
 import Foreign.Storable (Storable)
@@ -58,6 +59,7 @@ import GHC.ByteOrder (ByteOrder(..),targetByteOrder)
 import System.ByteOrder.Class (Bytes(..),FixedOrdering,toFixedEndian)
 
 import qualified Data.Primitive.Types as PM
+import qualified Data.Primitive.ByteArray.Unaligned as PMU
 import qualified Foreign.Storable as FS
 
 -- | Convert from a big-endian word to a native-endian word.
@@ -107,6 +109,15 @@ instance (FixedOrdering b, Prim a, Bytes a) => Prim (Fixed b a) where
     (# s1, x #) -> (# s1, Fixed (toFixedEndian @b x) #)
   writeOffAddr# a i (Fixed x) = PM.writeOffAddr# a i (toFixedEndian @b x)
   setOffAddr# a i n (Fixed x) = PM.setOffAddr# a i n (toFixedEndian @b x)
+
+instance (FixedOrdering b, PrimUnaligned a, Bytes a) => PrimUnaligned (Fixed b a) where
+  {-# inline indexUnalignedByteArray# #-}
+  {-# inline readUnalignedByteArray# #-}
+  {-# inline writeUnalignedByteArray# #-}
+  indexUnalignedByteArray# a i = Fixed (toFixedEndian @b (PMU.indexUnalignedByteArray# a i))
+  readUnalignedByteArray# a i s0 = case PMU.readUnalignedByteArray# a i s0 of
+    (# s1, x #) -> (# s1, Fixed (toFixedEndian @b x) #)
+  writeUnalignedByteArray# a i (Fixed x) = PMU.writeUnalignedByteArray# a i (toFixedEndian @b x)
 
 instance (FixedOrdering b, Storable a, Bytes a) => Storable (Fixed b a) where
   {-# inline sizeOf #-}
