@@ -50,6 +50,7 @@ module System.ByteOrder
     -- $example
   ) where
 
+import Data.Bits (Bits(..), FiniteBits(..))
 import Data.Kind (Type)
 import Data.Primitive.ByteArray.Unaligned (PrimUnaligned)
 import Data.Primitive.Types (Prim)
@@ -77,14 +78,68 @@ fromLittleEndian = toLittleEndian
 newtype Fixed :: ByteOrder -> Type -> Type where
   Fixed :: forall (b :: ByteOrder) (a :: Type). { getFixed :: a } -> Fixed b a
 
-type role Fixed phantom representational
+type role Fixed nominal representational
 
-deriving newtype instance Num a => Num (Fixed b a)
-deriving newtype instance Real a => Real (Fixed b a)
-deriving newtype instance Integral a => Integral (Fixed b a)
-deriving newtype instance Ord a => Ord (Fixed b a)
 deriving newtype instance Enum a => Enum (Fixed b a)
 deriving newtype instance Eq a => Eq (Fixed b a)
+deriving newtype instance Integral a => Integral (Fixed b a)
+deriving newtype instance Num a => Num (Fixed b a)
+deriving newtype instance Ord a => Ord (Fixed b a)
+deriving newtype instance Real a => Real (Fixed b a)
+
+instance (FixedOrdering b, Bits a, Bytes a) => Bits (Fixed b a) where
+  {-# inline (.&.) #-}
+  {-# inline (.|.) #-}
+  {-# inline xor #-}
+  {-# inline complement #-}
+  {-# inline shift #-}
+  {-# inline rotate #-}
+  {-# inline zeroBits #-}
+  {-# inline bit #-}
+  {-# inline setBit #-}
+  {-# inline clearBit #-}
+  {-# inline complementBit #-}
+  {-# inline testBit #-}
+  {-# inline bitSizeMaybe #-}
+  --{-# inline bitSize #-}
+  {-# inline isSigned #-}
+  {-# inline shiftL #-}
+  {-# inline unsafeShiftL #-}
+  {-# inline shiftR #-}
+  {-# inline unsafeShiftR #-}
+  {-# inline rotateL #-}
+  {-# inline rotateR #-}
+  {-# inline popCount #-}
+  Fixed x .&. Fixed y = Fixed (toFixedEndian @b x .&. toFixedEndian @b y)
+  Fixed x .|. Fixed y = Fixed (toFixedEndian @b x .|. toFixedEndian @b y)
+  Fixed x `xor` Fixed y = Fixed (toFixedEndian @b x `xor` toFixedEndian @b y)
+  complement (Fixed x) = Fixed (complement (toFixedEndian @b x))
+  shift (Fixed x) i = Fixed (shift (toFixedEndian @b x) i)
+  rotate (Fixed x) i = Fixed (rotate (toFixedEndian @b x) i)
+  zeroBits = Fixed (toFixedEndian @b zeroBits)
+  bit i = Fixed (toFixedEndian @b (bit i))
+  setBit (Fixed x) i = Fixed (setBit (toFixedEndian @b x) i)
+  clearBit (Fixed x) i = Fixed (clearBit (toFixedEndian @b x) i)
+  complementBit (Fixed x) i = Fixed (complementBit (toFixedEndian @b x) i)
+  testBit (Fixed x) i = testBit (toFixedEndian @b x) i
+  bitSizeMaybe (Fixed x) = bitSizeMaybe (toFixedEndian @b x)
+  bitSize (Fixed x) = bitSize (toFixedEndian @b x)
+  isSigned (Fixed x) = isSigned (toFixedEndian @b x)
+  shiftL (Fixed x) i = Fixed (shiftL (toFixedEndian @b x) i)
+  unsafeShiftL (Fixed x) i = Fixed (unsafeShiftL (toFixedEndian @b x) i)
+  shiftR (Fixed x) i = Fixed (shiftR (toFixedEndian @b x) i)
+  unsafeShiftR (Fixed x) i = Fixed (unsafeShiftR (toFixedEndian @b x) i)
+  rotateL (Fixed x) i = Fixed (rotateL (toFixedEndian @b x) i)
+  rotateR (Fixed x) i = Fixed (rotateR (toFixedEndian @b x) i)
+  popCount (Fixed x) = popCount (toFixedEndian @b x)
+
+instance (FixedOrdering b, FiniteBits a, Bytes a) => FiniteBits (Fixed b a) where
+  {-# inline finiteBitSize #-}
+  {-# inline countLeadingZeros #-}
+  {-# inline countTrailingZeros #-}
+  finiteBitSize (Fixed x) = finiteBitSize (toFixedEndian @b x)
+  countLeadingZeros (Fixed x) = countLeadingZeros (toFixedEndian @b x)
+  countTrailingZeros (Fixed x) = countTrailingZeros (toFixedEndian @b x)
 
 instance (FixedOrdering b, Prim a, Bytes a) => Prim (Fixed b a) where
   {-# inline sizeOf# #-}
@@ -171,7 +226,7 @@ interface, the server is implemented as:
 > import Data.Primitive.ByteArray
 > import Data.Primitive.PrimArray
 > import System.ByteOrder
-> 
+>
 > server :: Socket -> IO a
 > server sckt = forever $ do
 >   totalByteArray <- receive sckt 2
