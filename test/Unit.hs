@@ -17,6 +17,8 @@ main = do
   testB
   putStrLn "C"
   testC
+  putStrLn "D"
+  testD
   putStrLn "Finished"
 
 testA :: IO ()
@@ -58,6 +60,19 @@ testC = do
   expectByte name marr 5 0xAB
   expectByte name marr 6 0xCD
   expectByte name marr 7 0xEF
+
+testD :: IO ()
+testD = do
+  let payload = 0x01234567 :: Word
+  marr <- newByteArray 20
+  setByteArray marr 0 20 (0x00 :: Word8)
+  writeByteArray marr 0 (Fixed @'LittleEndian payload)
+  let name = "testA"
+  expectByte name marr 0 0x67
+  expectByte name marr 1 0x45
+  expectByte name marr 2 0x23
+  expectByte name marr 3 0x01
+  expectByte name marr 4 0x00
 
 expectByte :: String -> MutableByteArray RealWorld -> Int -> Word8 -> IO ()
 expectByte name marr ix w = do

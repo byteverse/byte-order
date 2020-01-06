@@ -16,8 +16,10 @@ module System.ByteOrder.Class
 import Data.Int (Int8,Int16,Int32,Int64)
 import Data.Word (Word8,Word16,Word32,Word64)
 import Data.Word (byteSwap16,byteSwap32,byteSwap64)
-import GHC.ByteOrder (ByteOrder(..),targetByteOrder)
-import GHC.ByteOrder (ByteOrder(BigEndian,LittleEndian))
+import GHC.ByteOrder (ByteOrder(BigEndian,LittleEndian),targetByteOrder)
+import GHC.Word (Word(W#))
+
+import qualified GHC.Exts as Exts
 
 -- | Types that are represented as a fixed-sized word. For these
 -- types, the bytes can be swapped. The instances of this class
@@ -63,6 +65,16 @@ instance Bytes Word64 where
     LittleEndian -> byteSwap64
   toLittleEndian = case targetByteOrder of
     BigEndian -> byteSwap64
+    LittleEndian -> id
+
+instance Bytes Word where
+  {-# inline toBigEndian #-}
+  {-# inline toLittleEndian #-}
+  toBigEndian = case targetByteOrder of
+    BigEndian -> id
+    LittleEndian -> byteSwap
+  toLittleEndian = case targetByteOrder of
+    BigEndian -> byteSwap
     LittleEndian -> id
 
 instance Bytes Int8 where
@@ -131,3 +143,7 @@ instance FixedOrdering 'LittleEndian where
 
 instance FixedOrdering 'BigEndian where
   toFixedEndian = toBigEndian
+
+byteSwap :: Word -> Word
+{-# inline byteSwap #-}
+byteSwap (W# w) = W# (Exts.byteSwap# w)
