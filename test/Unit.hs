@@ -3,10 +3,13 @@
 {-# language ScopedTypeVariables #-}
 {-# language TypeApplications #-}
 
+import Control.Monad (when)
 import Data.Primitive.ByteArray
 import Data.Word
 import GHC.Exts (RealWorld)
 import System.ByteOrder
+
+import qualified Data.Primitive.ByteArray.BigEndian as BE
 
 main :: IO ()
 main = do
@@ -19,6 +22,8 @@ main = do
   testC
   putStrLn "D"
   testD
+  putStrLn "E"
+  testE
   putStrLn "Finished"
 
 testA :: IO ()
@@ -67,12 +72,27 @@ testD = do
   marr <- newByteArray 20
   setByteArray marr 0 20 (0x00 :: Word8)
   writeByteArray marr 0 (Fixed @'LittleEndian payload)
-  let name = "testA"
+  let name = "testD"
   expectByte name marr 0 0x67
   expectByte name marr 1 0x45
   expectByte name marr 2 0x23
   expectByte name marr 3 0x01
   expectByte name marr 4 0x00
+
+testE :: IO ()
+testE = do
+  marr <- newByteArray 8
+  writeByteArray marr 0 (0xFF :: Word8)
+  writeByteArray marr 1 (0xFF :: Word8)
+  writeByteArray marr 2 (0xFF :: Word8)
+  writeByteArray marr 3 (0xFF :: Word8)
+  writeByteArray marr 4 (0x00 :: Word8)
+  writeByteArray marr 5 (0x06 :: Word8)
+  writeByteArray marr 6 (0x96 :: Word8)
+  writeByteArray marr 7 (0x9c :: Word8)
+  r <- BE.readByteArray marr 1
+  let expected = 0x0006969c :: Word32
+  when (r /= expected) (fail "testE failed")
 
 expectByte :: String -> MutableByteArray RealWorld -> Int -> Word8 -> IO ()
 expectByte name marr ix w = do
