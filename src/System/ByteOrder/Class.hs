@@ -73,9 +73,9 @@ instance Bytes Word128 where
   {-# inline toLittleEndian #-}
   toBigEndian = case targetByteOrder of
     BigEndian -> id
-    LittleEndian -> (\(Word128 hi lo) -> Word128 (byteSwap64 hi) (byteSwap64 lo))
+    LittleEndian -> (\(Word128 hi lo) -> Word128 (byteSwap64 lo) (byteSwap64 hi))
   toLittleEndian = case targetByteOrder of
-    BigEndian -> (\(Word128 hi lo) -> Word128 (byteSwap64 hi) (byteSwap64 lo))
+    BigEndian -> (\(Word128 hi lo) -> Word128 (byteSwap64 lo) (byteSwap64 hi))
     LittleEndian -> id
 
 instance Bytes Word256 where
@@ -83,9 +83,9 @@ instance Bytes Word256 where
   {-# inline toLittleEndian #-}
   toBigEndian = case targetByteOrder of
     BigEndian -> id
-    LittleEndian -> (\(Word256 a b c d) -> Word256 (byteSwap64 a) (byteSwap64 b) (byteSwap64 c) (byteSwap64 d))
+    LittleEndian -> (\(Word256 a b c d) -> Word256 (byteSwap64 d) (byteSwap64 c) (byteSwap64 b) (byteSwap64 a))
   toLittleEndian = case targetByteOrder of
-    BigEndian -> (\(Word256 a b c d) -> Word256 (byteSwap64 a) (byteSwap64 b) (byteSwap64 c) (byteSwap64 d))
+    BigEndian -> (\(Word256 a b c d) -> Word256 (byteSwap64 d) (byteSwap64 c) (byteSwap64 b) (byteSwap64 a))
     LittleEndian -> id
 
 instance Bytes Word where
