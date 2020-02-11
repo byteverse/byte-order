@@ -1,5 +1,9 @@
 # Revision history for byte-order
 
+## 0.1.3.0 -- 2020-??-??
+
+* Add a module for big-endian access to pointers.
+
 ## 0.1.2.0 -- 2020-01-06
 
 * Add a `Bytes` instance for `Word`.
