@@ -3,6 +3,7 @@
 ## 0.1.3.0 -- 2020-??-??
 
 * Add a module for big-endian access to pointers.
+* Add `Bytes` instances for `Word128` and `Word256`.
 
 ## 0.1.2.0 -- 2020-01-06
 

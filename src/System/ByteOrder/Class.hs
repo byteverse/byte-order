@@ -16,6 +16,7 @@ module System.ByteOrder.Class
 import Data.Int (Int8,Int16,Int32,Int64)
 import Data.Word (Word8,Word16,Word32,Word64)
 import Data.Word (byteSwap16,byteSwap32,byteSwap64)
+import Data.WideWord (Word128(Word128),Word256(Word256))
 import GHC.ByteOrder (ByteOrder(BigEndian,LittleEndian),targetByteOrder)
 import GHC.Word (Word(W#))
 
@@ -65,6 +66,26 @@ instance Bytes Word64 where
     LittleEndian -> byteSwap64
   toLittleEndian = case targetByteOrder of
     BigEndian -> byteSwap64
+    LittleEndian -> id
+
+instance Bytes Word128 where
+  {-# inline toBigEndian #-}
+  {-# inline toLittleEndian #-}
+  toBigEndian = case targetByteOrder of
+    BigEndian -> id
+    LittleEndian -> (\(Word128 hi lo) -> Word128 (byteSwap64 hi) (byteSwap64 lo))
+  toLittleEndian = case targetByteOrder of
+    BigEndian -> (\(Word128 hi lo) -> Word128 (byteSwap64 hi) (byteSwap64 lo))
+    LittleEndian -> id
+
+instance Bytes Word256 where
+  {-# inline toBigEndian #-}
+  {-# inline toLittleEndian #-}
+  toBigEndian = case targetByteOrder of
+    BigEndian -> id
+    LittleEndian -> (\(Word256 a b c d) -> Word256 (byteSwap64 a) (byteSwap64 b) (byteSwap64 c) (byteSwap64 d))
+  toLittleEndian = case targetByteOrder of
+    BigEndian -> (\(Word256 a b c d) -> Word256 (byteSwap64 a) (byteSwap64 b) (byteSwap64 c) (byteSwap64 d))
     LittleEndian -> id
 
 instance Bytes Word where
