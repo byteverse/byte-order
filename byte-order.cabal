@@ -41,5 +41,6 @@ test-suite unit
     , base
     , byte-order
     , primitive
+    , wide-word
   ghc-options: -Wall -O2
   default-language: Haskell2010

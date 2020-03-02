@@ -8,6 +8,7 @@ import Data.Primitive.ByteArray
 import Data.Word
 import GHC.Exts (RealWorld)
 import System.ByteOrder
+import Data.WideWord (Word128)
 
 import qualified Data.Primitive.ByteArray.BigEndian as BE
 
@@ -24,6 +25,8 @@ main = do
   testD
   putStrLn "E"
   testE
+  putStrLn "F"
+  testF
   putStrLn "Finished"
 
 testA :: IO ()
@@ -93,6 +96,29 @@ testE = do
   r <- BE.readByteArray marr 1
   let expected = 0x0006969c :: Word32
   when (r /= expected) (fail "testE failed")
+
+testF :: IO ()
+testF = do
+  marr <- newByteArray 32
+  writeByteArray marr 16 (0x00 :: Word8)
+  writeByteArray marr 17 (0x01 :: Word8)
+  writeByteArray marr 18 (0x02 :: Word8)
+  writeByteArray marr 19 (0x03 :: Word8)
+  writeByteArray marr 20 (0x04 :: Word8)
+  writeByteArray marr 21 (0x05 :: Word8)
+  writeByteArray marr 22 (0x06 :: Word8)
+  writeByteArray marr 23 (0x07 :: Word8)
+  writeByteArray marr 24 (0x08 :: Word8)
+  writeByteArray marr 25 (0x09 :: Word8)
+  writeByteArray marr 26 (0x0A :: Word8)
+  writeByteArray marr 27 (0x0B :: Word8)
+  writeByteArray marr 28 (0x0C :: Word8)
+  writeByteArray marr 29 (0x0D :: Word8)
+  writeByteArray marr 30 (0x0E :: Word8)
+  writeByteArray marr 31 (0x0F :: Word8)
+  r <- BE.readByteArray marr 1
+  let expected = 0x000102030405060708090A0B0C0D0E0F :: Word128
+  when (r /= expected) (fail "testF failed")
 
 expectByte :: String -> MutableByteArray RealWorld -> Int -> Word8 -> IO ()
 expectByte name marr ix w = do
