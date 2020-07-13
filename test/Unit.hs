@@ -35,11 +35,10 @@ testA = do
   marr <- newByteArray 4
   setByteArray marr 0 4 (0x00 :: Word8)
   writeByteArray marr 0 (Fixed @'LittleEndian payload)
-  let name = "testA"
-  expectByte name marr 0 0x67
-  expectByte name marr 1 0x45
-  expectByte name marr 2 0x23
-  expectByte name marr 3 0x01
+  expectByte "testA, byte 0" marr 0 0x67
+  expectByte "testA, byte 1" marr 1 0x45
+  expectByte "testA, byte 2" marr 2 0x23
+  expectByte "testA, byte 3" marr 3 0x01
 
 testB :: IO ()
 testB = do
@@ -125,5 +124,5 @@ expectByte name marr ix w = do
   v <- readByteArray marr ix
   if v == w
     then pure ()
-    else fail (name ++ ": byte " ++ show ix ++ " was wrong")
+    else fail (name ++ ": byte " ++ show ix ++ " was wrong, expected " ++ show w ++ " but got " ++ show v)
 
