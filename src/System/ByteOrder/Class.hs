@@ -1,46 +1,46 @@
-{-# language AllowAmbiguousTypes #-}
-{-# language DataKinds #-}
-{-# language GADTSyntax #-}
-{-# language KindSignatures #-}
-{-# language MagicHash #-}
-{-# language RoleAnnotations #-}
-{-# language ScopedTypeVariables #-}
-{-# language TypeApplications #-}
-{-# language UnboxedTuples #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTSyntax #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE RoleAnnotations #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 module System.ByteOrder.Class
-  ( FixedOrdering(..)
-  , Bytes(..)
+  ( FixedOrdering (..)
+  , Bytes (..)
   ) where
 
-import Data.Int (Int8,Int16,Int32,Int64)
-import Data.Word (Word8,Word16,Word32,Word64)
-import Data.Word (byteSwap16,byteSwap32,byteSwap64)
-import Data.WideWord (Word128(Word128),Word256(Word256))
-import GHC.ByteOrder (ByteOrder(BigEndian,LittleEndian),targetByteOrder)
-import GHC.Word (Word(W#))
+import Data.Int (Int16, Int32, Int64, Int8)
+import Data.WideWord (Word128 (Word128), Word256 (Word256))
+import Data.Word (Word16, Word32, Word64, Word8, byteSwap16, byteSwap32, byteSwap64)
+import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian), targetByteOrder)
+import GHC.Word (Word (W#))
 
 import qualified GHC.Exts as Exts
 
--- | Types that are represented as a fixed-sized word. For these
--- types, the bytes can be swapped. The instances of this class
--- use byteswapping primitives and compile-time knowledge of native
--- endianness to provide portable endianness conversion functions.
+{- | Types that are represented as a fixed-sized word. For these
+types, the bytes can be swapped. The instances of this class
+use byteswapping primitives and compile-time knowledge of native
+endianness to provide portable endianness conversion functions.
+-}
 class Bytes a where
   -- | Convert from a native-endian word to a big-endian word.
   toBigEndian :: a -> a
+
   -- | Convert from a native-endian word to a little-endian word.
   toLittleEndian :: a -> a
 
 instance Bytes Word8 where
-  {-# inline toBigEndian #-}
-  {-# inline toLittleEndian #-}
+  {-# INLINE toBigEndian #-}
+  {-# INLINE toLittleEndian #-}
   toBigEndian = id
   toLittleEndian = id
 
 instance Bytes Word16 where
-  {-# inline toBigEndian #-}
-  {-# inline toLittleEndian #-}
+  {-# INLINE toBigEndian #-}
+  {-# INLINE toLittleEndian #-}
   toBigEndian = case targetByteOrder of
     BigEndian -> id
     LittleEndian -> byteSwap16
@@ -49,8 +49,8 @@ instance Bytes Word16 where
     LittleEndian -> id
 
 instance Bytes Word32 where
-  {-# inline toBigEndian #-}
-  {-# inline toLittleEndian #-}
+  {-# INLINE toBigEndian #-}
+  {-# INLINE toLittleEndian #-}
   toBigEndian = case targetByteOrder of
     BigEndian -> id
     LittleEndian -> byteSwap32
@@ -59,8 +59,8 @@ instance Bytes Word32 where
     LittleEndian -> id
 
 instance Bytes Word64 where
-  {-# inline toBigEndian #-}
-  {-# inline toLittleEndian #-}
+  {-# INLINE toBigEndian #-}
+  {-# INLINE toLittleEndian #-}
   toBigEndian = case targetByteOrder of
     BigEndian -> id
     LittleEndian -> byteSwap64
@@ -69,8 +69,8 @@ instance Bytes Word64 where
     LittleEndian -> id
 
 instance Bytes Word128 where
-  {-# inline toBigEndian #-}
-  {-# inline toLittleEndian #-}
+  {-# INLINE toBigEndian #-}
+  {-# INLINE toLittleEndian #-}
   toBigEndian = case targetByteOrder of
     BigEndian -> id
     LittleEndian -> (\(Word128 hi lo) -> Word128 (byteSwap64 lo) (byteSwap64 hi))
@@ -79,8 +79,8 @@ instance Bytes Word128 where
     LittleEndian -> id
 
 instance Bytes Word256 where
-  {-# inline toBigEndian #-}
-  {-# inline toLittleEndian #-}
+  {-# INLINE toBigEndian #-}
+  {-# INLINE toLittleEndian #-}
   toBigEndian = case targetByteOrder of
     BigEndian -> id
     LittleEndian -> (\(Word256 a b c d) -> Word256 (byteSwap64 d) (byteSwap64 c) (byteSwap64 b) (byteSwap64 a))
@@ -89,8 +89,8 @@ instance Bytes Word256 where
     LittleEndian -> id
 
 instance Bytes Word where
-  {-# inline toBigEndian #-}
-  {-# inline toLittleEndian #-}
+  {-# INLINE toBigEndian #-}
+  {-# INLINE toLittleEndian #-}
   toBigEndian = case targetByteOrder of
     BigEndian -> id
     LittleEndian -> byteSwap
@@ -99,65 +99,66 @@ instance Bytes Word where
     LittleEndian -> id
 
 instance Bytes Int8 where
-  {-# inline toBigEndian #-}
-  {-# inline toLittleEndian #-}
+  {-# INLINE toBigEndian #-}
+  {-# INLINE toLittleEndian #-}
   toBigEndian = id
   toLittleEndian = id
 
 instance Bytes Int16 where
-  {-# inline toBigEndian #-}
-  {-# inline toLittleEndian #-}
+  {-# INLINE toBigEndian #-}
+  {-# INLINE toLittleEndian #-}
   toBigEndian = case targetByteOrder of
     BigEndian -> id
     LittleEndian ->
-        fromIntegral @Word16 @Int16
-      . byteSwap16
-      . fromIntegral @Int16 @Word16
+      fromIntegral @Word16 @Int16
+        . byteSwap16
+        . fromIntegral @Int16 @Word16
   toLittleEndian = case targetByteOrder of
     BigEndian ->
-        fromIntegral @Word16 @Int16
-      . byteSwap16
-      . fromIntegral @Int16 @Word16
+      fromIntegral @Word16 @Int16
+        . byteSwap16
+        . fromIntegral @Int16 @Word16
     LittleEndian -> id
 
 instance Bytes Int32 where
-  {-# inline toBigEndian #-}
-  {-# inline toLittleEndian #-}
+  {-# INLINE toBigEndian #-}
+  {-# INLINE toLittleEndian #-}
   toBigEndian = case targetByteOrder of
     BigEndian -> id
     LittleEndian ->
-        fromIntegral @Word32 @Int32
-      . byteSwap32
-      . fromIntegral @Int32 @Word32
+      fromIntegral @Word32 @Int32
+        . byteSwap32
+        . fromIntegral @Int32 @Word32
   toLittleEndian = case targetByteOrder of
     BigEndian ->
-        fromIntegral @Word32 @Int32
-      . byteSwap32
-      . fromIntegral @Int32 @Word32
+      fromIntegral @Word32 @Int32
+        . byteSwap32
+        . fromIntegral @Int32 @Word32
     LittleEndian -> id
 
 instance Bytes Int64 where
-  {-# inline toBigEndian #-}
-  {-# inline toLittleEndian #-}
+  {-# INLINE toBigEndian #-}
+  {-# INLINE toLittleEndian #-}
   toBigEndian = case targetByteOrder of
     BigEndian -> id
     LittleEndian ->
-        fromIntegral @Word64 @Int64
-      . byteSwap64
-      . fromIntegral @Int64 @Word64
+      fromIntegral @Word64 @Int64
+        . byteSwap64
+        . fromIntegral @Int64 @Word64
   toLittleEndian = case targetByteOrder of
     BigEndian ->
-        fromIntegral @Word64 @Int64
-      . byteSwap64
-      . fromIntegral @Int64 @Word64
+      fromIntegral @Word64 @Int64
+        . byteSwap64
+        . fromIntegral @Int64 @Word64
     LittleEndian -> id
 
--- | A byte order that can be interpreted as a conversion function.
--- This class is effectively closed. The only instances are for
--- 'BigEndian' and 'LittleEndian'. It is not possible to write more
--- instances since there are no other inhabitants of 'ByteOrder'.
+{- | A byte order that can be interpreted as a conversion function.
+This class is effectively closed. The only instances are for
+'BigEndian' and 'LittleEndian'. It is not possible to write more
+instances since there are no other inhabitants of 'ByteOrder'.
+-}
 class FixedOrdering (b :: ByteOrder) where
-  toFixedEndian :: Bytes a => a -> a
+  toFixedEndian :: (Bytes a) => a -> a
 
 instance FixedOrdering 'LittleEndian where
   toFixedEndian = toLittleEndian
@@ -166,5 +167,5 @@ instance FixedOrdering 'BigEndian where
   toFixedEndian = toBigEndian
 
 byteSwap :: Word -> Word
-{-# inline byteSwap #-}
+{-# INLINE byteSwap #-}
 byteSwap (W# w) = W# (Exts.byteSwap# w)
