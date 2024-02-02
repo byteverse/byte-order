@@ -1,16 +1,16 @@
-{-# language DataKinds #-}
-{-# language DerivingStrategies #-}
-{-# language GeneralizedNewtypeDeriving #-}
-{-# language GADTSyntax #-}
-{-# language KindSignatures #-}
-{-# language MagicHash #-}
-{-# language RoleAnnotations #-}
-{-# language ScopedTypeVariables #-}
-{-# language StandaloneDeriving #-}
-{-# language TypeApplications #-}
-{-# language UnboxedTuples #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GADTSyntax #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE RoleAnnotations #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE UnboxedTuples #-}
 
-{-| This module offers an interface to portably work with byte
+{- | This module offers an interface to portably work with byte
 arrays whose contents are known to be of a fixed endianness.
 There are two ways to use this module:
 
@@ -31,21 +31,24 @@ There are two ways to use this module:
 The example at the bottom of this page demonstrates how to use the
 type-directed interface.
 -}
-
 module System.ByteOrder
   ( -- * Types
-    ByteOrder(..)
-  , Fixed(..)
+    ByteOrder (..)
+  , Fixed (..)
+
     -- * Classes
   , Bytes
   , FixedOrdering
+
     -- * Conversion
   , toBigEndian
   , toLittleEndian
   , fromBigEndian
   , fromLittleEndian
+
     -- * System Byte Order
   , targetByteOrder
+
     -- * Example
     -- $example
   ) where
@@ -53,50 +56,51 @@ module System.ByteOrder
 import Data.Kind (Type)
 import Data.Primitive.ByteArray.Unaligned (PrimUnaligned)
 import Data.Primitive.Types (Prim)
-import Foreign.Ptr (Ptr,castPtr)
+import Foreign.Ptr (Ptr, castPtr)
 import Foreign.Storable (Storable)
-import GHC.ByteOrder (ByteOrder(..),targetByteOrder)
-import System.ByteOrder.Class (Bytes(..),FixedOrdering,toFixedEndian)
+import GHC.ByteOrder (ByteOrder (..), targetByteOrder)
+import System.ByteOrder.Class (Bytes (..), FixedOrdering, toFixedEndian)
 
-import qualified Data.Primitive.Types as PM
 import qualified Data.Primitive.ByteArray.Unaligned as PMU
+import qualified Data.Primitive.Types as PM
 import qualified Foreign.Storable as FS
 
 -- | Convert from a big-endian word to a native-endian word.
-fromBigEndian :: Bytes a => a -> a
+fromBigEndian :: (Bytes a) => a -> a
 fromBigEndian = toBigEndian
 
 -- | Convert from a little-endian word to a native-endian word.
-fromLittleEndian :: Bytes a => a -> a
+fromLittleEndian :: (Bytes a) => a -> a
 fromLittleEndian = toLittleEndian
 
--- | A word whose byte order is specified (not platform dependent)
--- when working with 'Prim', 'Storable', and @PrimUnaligned@ (this
--- last instance is provided alongside the typeclass itself in the
--- @primitive-unaligned@ library).
+{- | A word whose byte order is specified (not platform dependent)
+when working with 'Prim', 'Storable', and @PrimUnaligned@ (this
+last instance is provided alongside the typeclass itself in the
+@primitive-unaligned@ library).
+-}
 newtype Fixed :: ByteOrder -> Type -> Type where
-  Fixed :: forall (b :: ByteOrder) (a :: Type). { getFixed :: a } -> Fixed b a
+  Fixed :: forall (b :: ByteOrder) (a :: Type). {getFixed :: a} -> Fixed b a
 
 type role Fixed phantom representational
 
-deriving newtype instance Num a => Num (Fixed b a)
-deriving newtype instance Real a => Real (Fixed b a)
-deriving newtype instance Integral a => Integral (Fixed b a)
-deriving newtype instance Ord a => Ord (Fixed b a)
-deriving newtype instance Enum a => Enum (Fixed b a)
-deriving newtype instance Eq a => Eq (Fixed b a)
+deriving newtype instance (Num a) => Num (Fixed b a)
+deriving newtype instance (Real a) => Real (Fixed b a)
+deriving newtype instance (Integral a) => Integral (Fixed b a)
+deriving newtype instance (Ord a) => Ord (Fixed b a)
+deriving newtype instance (Enum a) => Enum (Fixed b a)
+deriving newtype instance (Eq a) => Eq (Fixed b a)
 
 instance (FixedOrdering b, Prim a, Bytes a) => Prim (Fixed b a) where
-  {-# inline sizeOf# #-}
-  {-# inline alignment# #-}
-  {-# inline indexByteArray# #-}
-  {-# inline readByteArray# #-}
-  {-# inline writeByteArray# #-}
-  {-# inline setByteArray# #-}
-  {-# inline indexOffAddr# #-}
-  {-# inline readOffAddr# #-}
-  {-# inline writeOffAddr# #-}
-  {-# inline setOffAddr# #-}
+  {-# INLINE sizeOf# #-}
+  {-# INLINE alignment# #-}
+  {-# INLINE indexByteArray# #-}
+  {-# INLINE readByteArray# #-}
+  {-# INLINE writeByteArray# #-}
+  {-# INLINE setByteArray# #-}
+  {-# INLINE indexOffAddr# #-}
+  {-# INLINE readOffAddr# #-}
+  {-# INLINE writeOffAddr# #-}
+  {-# INLINE setOffAddr# #-}
   sizeOf# _ = PM.sizeOf# (undefined :: a)
   alignment# _ = PM.alignment# (undefined :: a)
   indexByteArray# a i = Fixed (toFixedEndian @b (PM.indexByteArray# a i))
@@ -111,23 +115,23 @@ instance (FixedOrdering b, Prim a, Bytes a) => Prim (Fixed b a) where
   setOffAddr# a i n (Fixed x) = PM.setOffAddr# a i n (toFixedEndian @b x)
 
 instance (FixedOrdering b, PrimUnaligned a, Bytes a) => PrimUnaligned (Fixed b a) where
-  {-# inline indexUnalignedByteArray# #-}
-  {-# inline readUnalignedByteArray# #-}
-  {-# inline writeUnalignedByteArray# #-}
+  {-# INLINE indexUnalignedByteArray# #-}
+  {-# INLINE readUnalignedByteArray# #-}
+  {-# INLINE writeUnalignedByteArray# #-}
   indexUnalignedByteArray# a i = Fixed (toFixedEndian @b (PMU.indexUnalignedByteArray# a i))
   readUnalignedByteArray# a i s0 = case PMU.readUnalignedByteArray# a i s0 of
     (# s1, x #) -> (# s1, Fixed (toFixedEndian @b x) #)
   writeUnalignedByteArray# a i (Fixed x) = PMU.writeUnalignedByteArray# a i (toFixedEndian @b x)
 
 instance (FixedOrdering b, Storable a, Bytes a) => Storable (Fixed b a) where
-  {-# inline sizeOf #-}
-  {-# inline alignment #-}
-  {-# inline peekElemOff #-}
-  {-# inline pokeElemOff #-}
-  {-# inline peekByteOff #-}
-  {-# inline pokeByteOff #-}
-  {-# inline peek #-}
-  {-# inline poke #-}
+  {-# INLINE sizeOf #-}
+  {-# INLINE alignment #-}
+  {-# INLINE peekElemOff #-}
+  {-# INLINE pokeElemOff #-}
+  {-# INLINE peekByteOff #-}
+  {-# INLINE pokeByteOff #-}
+  {-# INLINE peek #-}
+  {-# INLINE poke #-}
   sizeOf _ = FS.sizeOf (undefined :: a)
   alignment _ = FS.alignment (undefined :: a)
   peekElemOff p i = fmap (Fixed . toFixedEndian @b) (FS.peekElemOff (fromFixedPtr p) i)
@@ -138,7 +142,7 @@ instance (FixedOrdering b, Storable a, Bytes a) => Storable (Fixed b a) where
   poke p (Fixed x) = FS.poke (fromFixedPtr p) (toFixedEndian @b x)
 
 fromFixedPtr :: Ptr (Fixed b a) -> Ptr a
-{-# inline fromFixedPtr #-}
+{-# INLINE fromFixedPtr #-}
 fromFixedPtr = castPtr
 
 {- $example
@@ -171,7 +175,7 @@ interface, the server is implemented as:
 > import Data.Primitive.ByteArray
 > import Data.Primitive.PrimArray
 > import System.ByteOrder
-> 
+>
 > server :: Socket -> IO a
 > server sckt = forever $ do
 >   totalByteArray <- receive sckt 2
@@ -191,5 +195,4 @@ Not every explicit type annotation above is needed. Some are provided
 for the reader's benefit. As long as the user ensures that the
 typed primitive arrays use 'Fixed' in their element types, the endianness
 conversions are guaranteed to be correct.
-
 -}

@@ -1,14 +1,13 @@
-{-# language BangPatterns #-}
-{-# language DataKinds #-}
-{-# language ScopedTypeVariables #-}
-{-# language TypeApplications #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 import Control.Monad (when)
 import Data.Primitive.ByteArray
+import Data.WideWord (Word128)
 import Data.Word
 import GHC.Exts (RealWorld)
 import System.ByteOrder
-import Data.WideWord (Word128)
 
 import qualified Data.Primitive.ByteArray.BigEndian as BE
 
@@ -125,4 +124,3 @@ expectByte name marr ix w = do
   if v == w
     then pure ()
     else fail (name ++ ": byte " ++ show ix ++ " was wrong, expected " ++ show w ++ " but got " ++ show v)
-
